@@ -8,14 +8,9 @@ class Feature
 public:
     Feature() : m_fired(false) {}
     virtual ~Feature() {}
-    virtual void check(unsigned long id) = 0;
+    virtual bool check(unsigned long id) = 0;
     std::string get_string(void) {
         return m_feature_string;
-    }
-    bool fired() {
-        bool f = m_fired;
-        m_fired = false;
-        return f;
     }
 protected:
     std::string m_feature_string;
@@ -25,31 +20,36 @@ protected:
 class FeatureFizz : public Feature 
 {
 public:
-    virtual void check(unsigned long id) {
+    virtual bool check(unsigned long id) {
         if ( id % 3 == 0 ) {
             m_fired = true;
             m_feature_string = "Fizz";
+            return true;
         }
+        return false;
     }
 };
 
 class FeatureBuzz : public Feature 
 {
 public:
-    virtual void check(unsigned long id) {
+    virtual bool check(unsigned long id) {
         if ( id % 5 == 0 ) {
             m_fired = true;
             m_feature_string = "Buzz";
+            return true;
         }
+        return false;
     }
 };
 
 class FeatureBasic : public Feature 
 {
 public:
-    virtual void check(unsigned long id) {
+    virtual bool check(unsigned long id) {
         m_fired = true;
         m_feature_string = std::to_string(id);
+        return true;
     }
 };
 
@@ -72,17 +72,13 @@ public:
         std::string str;
         bool        bAdvanced = false;
         for(auto f: m_adv_features) {
-            f->check(m_id);
-            if (f->fired()) {
+            if (f->check(m_id)) {
                 str += f->get_string();
                 bAdvanced = true;
             }
         }
-        if(!bAdvanced) {
-            m_basic_feature.check(m_id);
-            if(m_basic_feature.fired()) {
-                str = m_basic_feature.get_string();
-            }
+        if(!bAdvanced && m_basic_feature.check(m_id)) {
+            str = m_basic_feature.get_string();
         }
         return str;
     }
